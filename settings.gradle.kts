@@ -1,14 +1,14 @@
-// Plik settings.gradle.kts to główne ustawienia środowiska Twojego projektu.
-// Określamy w nim "skąd" Android Studio ma ściągać wtyczki do budowania aplikacji.
+//Plik settings.gradle.kts to glowne ustawienia srodowiska projektu.
+//Okreslamy w nim "skad" Android Studio ma sciagac wtyczki do budowania aplikacji.
 pluginManagement {
     repositories {
-        google() // Repozytorium Google (niezbędne do wtyczek od Androida)
-        mavenCentral() // Główne publiczne repozytorium z setkami tysięcy bibliotek open-source
-        gradlePluginPortal() // Portal przechowujący główne narzędzia Gradle
+        google()//Repozytorium Google
+        mavenCentral()//Glowne publiczne repozytorium z bibliotekami open-source
+        gradlePluginPortal()//Portal przechowujacy glowne narzedzia Gradle
     }
 }
-// Poniższy blok zabezpiecza projekt, nakazując żeby to TE repozytoria (Google i MavenCentral) 
-// były używane przez wszystkie moduły Twojej aplikacji, zamiast szukać po plikach poszczególnych modułów.
+//blok zabezpiecza projekt, nakazujac zeby te repozytoria (Google i MavenCentral) 
+//byly uzywane przez wszystkie moduly aplikacji
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -16,7 +16,7 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-// Nazwa korzenia Twojego projektu
+//Nazwa projektu
 rootProject.name = "Monitor_Zdarzen_Naturalnych"
-// Włączenie modułu o nazwie "app" (w którym tworzymy MainActivity i resztę kodu)
+//wlaczenie app (w ktorym tworzymy MainActivity i reszte kodu)
 include(":app")
