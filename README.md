@@ -23,14 +23,7 @@ Aplikacja korzysta z [NASA EONET API v3](https://eonet.gsfc.nasa.gov/docs/v3):
 - Endpoint: `https://eonet.gsfc.nasa.gov/api/v3/events`
 - Dane: aktywne zdarzenia naturalne (pożary, sztormy, wulkany, powodzie itp.)
 
-## Uruchomienie
-
-1. Sklonuj repozytorium
-2. Otwórz projekt w **Android Studio**
-3. Dodaj klucz Google Maps w `AndroidManifest.xml` (linia z `TUTAJ_WKLEJ_SWOJ_KLUCZ`)
-4. Uruchom na emulatorze lub urządzeniu fizycznym
-
-## 👤 Autorzy
+##Autorzy
 
 Adam Rybacki
 oraz
