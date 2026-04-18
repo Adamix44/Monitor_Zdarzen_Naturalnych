@@ -1,4 +1,4 @@
-<img width="1109" height="727" alt="image" src="https://github.com/user-attachments/assets/14bb99d2-eb20-4dba-86c9-ac547fd89f2a" /># Monitor_Zdarzen_Naturalnych
+# Monitor_Zdarzen_Naturalnych
 Aplikacja na system Android do monitorowania zdarzeń naturalnych na świecie w czasie rzeczywistym. Zaprojektowana w środowisku Android Studio i korzystająca z **NASA EONET API** (Earth Observatory Natural Event Tracker).
 
 ## Funkcje
