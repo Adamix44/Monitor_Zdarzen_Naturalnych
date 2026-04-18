@@ -1,4 +1,5 @@
 # Monitor_Zdarzen_Naturalnych
+
 Aplikacja na system Android do monitorowania zdarzeń naturalnych na świecie w czasie rzeczywistym. Zaprojektowana w środowisku Android Studio i korzystająca z **NASA EONET API** (Earth Observatory Natural Event Tracker).
 
 ## Funkcje
@@ -23,7 +24,7 @@ Aplikacja korzysta z [NASA EONET API v3](https://eonet.gsfc.nasa.gov/docs/v3):
 - Endpoint: `https://eonet.gsfc.nasa.gov/api/v3/events`
 - Dane: aktywne zdarzenia naturalne (pożary, sztormy, wulkany, powodzie itp.)
 
-##Autorzy
+## Autorzy
 
 Adam Rybacki
 oraz
