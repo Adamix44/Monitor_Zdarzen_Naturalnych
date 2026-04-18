@@ -1,23 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Udzielamy systemowi operacyjnemu zgody na włączenie karty Sieciowej i pobieranie danych zewnętrznych -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!-- Punkt główny ustawień działania i ikon aplikacji  -->
     <application
         android:allowBackup="true"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
 
+        <!-- Tutaj ląduje nasz klucz API do wczytania ułożonej Mapy z satelity.
+             Przy kompilacji słowo MAGS_API_KEY zamienia się na to, co wpisałeś w 'local.properties' -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="${MAPS_API_KEY}" />
 
+        <!-- Deklaracja ekranu (Activity) -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
+                <!-- To sprawia, że okno "MainActivity" otwiera się absolutnie JAKO PIERWSZE z pulpitu Androida. -->
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
