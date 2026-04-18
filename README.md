@@ -5,7 +5,7 @@ Aplikacja na system Android do monitorowania zdarzeń naturalnych na świecie w 
 ## Funkcje
 
 - **Mapa z pinezkami** — zdarzenia naturalne wyświetlane za pomocą Google Maps
-- **Filtrowanie po kategorii** — pożary 🔥, sztormy 🌪️, wulkany 🌋, powodzie 🌊
+- **Filtrowanie po kategorii** — pożary, sztormy, wulkany, powodzie
 - **Dane w czasie rzeczywistym** — pobieranie aktualnych danych z NASA EONET API
 - **Szczegóły zdarzeń** — kliknięcie w pinezkę pokazuje nazwę, kategorię i datę
 
