@@ -6,7 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // wczytujemy prosty podstawowy ekran zdefiniowany w activity_main.xml
+        // wczytanie podstawowy ekran zdefiniowany w activity_main.xml
         setContentView(R.layout.activity_main)
     }
 }
