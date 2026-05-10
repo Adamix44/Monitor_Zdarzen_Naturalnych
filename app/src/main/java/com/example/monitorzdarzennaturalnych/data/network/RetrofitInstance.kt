@@ -6,7 +6,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 // glowne narzedzie do polaczen sieciowych
 object RetrofitInstance {
     // bazowy link do nasa eonet
-    private const val BASE_URL = "https://eonet.gsfc.nasa.gov"
+    private const val BASE_URL = "https://eonet.gsfc.nasa.gov/api/v3/"
     // leniwe wywolanie API
     val api: EonetApiService by lazy {
         Retrofit.Builder()
