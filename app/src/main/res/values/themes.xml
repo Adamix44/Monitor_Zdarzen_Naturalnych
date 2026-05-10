@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Glowny motyw aplikacji (Material Design) -->
+    <!--Glowny motyw aplikacji (Material Design)-->
     <style name="Theme.MonitorZdarzenNaturalnych" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Kolory podstawowe -->
+        <!--Kolory podstawowe -->
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryVariant">@color/primary_variant</item>
         <item name="colorOnPrimary">@color/white</item>
-        <!-- Kolory akcentow -->
+        <!-- Kolory dodatkowe-->
         <item name="colorSecondary">@color/secondary</item>
         <item name="colorSecondaryVariant">@color/secondary</item>
         <item name="colorOnSecondary">@color/black</item>
-        <!-- Kolor paska powiadomien w telefonie -->
+        <!--Kolor paska powiadomien w telefonie-->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
     </style>
 </resources>

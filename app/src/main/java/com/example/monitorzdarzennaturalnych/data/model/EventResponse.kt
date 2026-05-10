@@ -8,7 +8,7 @@ data class EventResponse(
         @SerializedName("events") val events: List<Event>
 )
 
-// pojedyncze wydarzenie naturalne
+// pojedyncze wydarzenie
 data class Event(
         @SerializedName("id") val id: String,
         @SerializedName("title") val title: String,
@@ -16,16 +16,16 @@ data class Event(
         @SerializedName("geometry") val geometries: List<Geometry>
 )
 
-// kategoria pojedynczego wydarzenia naturalnego
+// kategoria pojedynczego wydarzenia
 data class Category(
         @SerializedName("id") val id: String,
         @SerializedName("title") val title: String
 )
 
-// dokladny czas wykrycia oraz wspolrzedne na mape
+// dokladny czas wykrycia oraz wspolrzedne geograficzne
 data class Geometry(
         @SerializedName("date") val date: String,
         @SerializedName("type") val type: String,
         @SerializedName("coordinates")
-        val coordinates: List<Double> // zapis [długość, szerokość] geograficzna
+        val coordinates: List<Double> // zapis [dlugosc, szerokosc] geograficzna
 )
