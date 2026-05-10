@@ -3,12 +3,11 @@
 pluginManagement {
     repositories {
         google()//Repozytorium Google
-        mavenCentral()//Glowne publiczne repozytorium z bibliotekami open-source
+        mavenCentral()//Glowne publiczne repozytorium z bibliotekami
         gradlePluginPortal()//Portal przechowujacy glowne narzedzia Gradle
     }
 }
-//blok zabezpiecza projekt, nakazujac zeby te repozytoria (Google i MavenCentral) 
-//byly uzywane przez wszystkie moduly aplikacji
+//blok zabezpieczajacy, ktory nakazuje aby repozytoria byly uzywane przez wszystkie moduly aplikacji
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -18,5 +17,5 @@ dependencyResolutionManagement {
 }
 //Nazwa projektu
 rootProject.name = "Monitor_Zdarzen_Naturalnych"
-//wlaczenie app (w ktorym tworzymy MainActivity i reszte kodu)
+//wlaczenie app 
 include(":app")
