@@ -4,22 +4,21 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
-import com.example.monitorzdarzennaturalnych.repository.EventRepository
+import com.example.monitorzdarzennaturalnych.viewmodel.MainViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
-    // repository z danymi z internetu
-    private val repository = EventRepository()
+    // podlaczenie menedzera widoku MVVM
+    private val viewModel: MainViewModel by viewModels()
     private lateinit var progressBar: ProgressBar
 
     // glowna funkcja przy starcie okna
@@ -43,21 +42,18 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         val worldCenter = LatLng(0.0, 0.0)
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(worldCenter, 2f))
 
-        loadEvents()
-    }
-
-    // funkcja nakladajaca pinezki z serwera
-    private fun loadEvents() {
+        // nakazujemy zeby menedzer zaczal pobierac po wczytaniu mapy
         progressBar.visibility = View.VISIBLE
-        
-        lifecycleScope.launch {
-            val events = repository.getEvents() 
+        viewModel.loadEvents()
+
+        // MVVM: Obserwujemy strumien "events" wypluwany przez ViewModel
+        viewModel.events.observe(this) { events ->
             progressBar.visibility = View.GONE
             
             // blad pobierania
             if (events.isEmpty()) {
                 Toast.makeText(this@MainActivity, "Brak wydarzen lub blad API.", Toast.LENGTH_SHORT).show()
-                return@launch
+                return@observe
             }
 
             for (event in events) {
