@@ -14,7 +14,8 @@ class EventRepository {
                 val response = RetrofitInstance.api.getEvents(days = days)
                 response.events
             } catch (e: Exception) {
-                // w razie braku sieci, przekazujemy pusta liste i unikamy bledu
+                // Wydrukuj bląd do logcat, żebyśmy wiedzieli co ubiło parsowanie
+                e.printStackTrace()
                 emptyList()
             }
         }

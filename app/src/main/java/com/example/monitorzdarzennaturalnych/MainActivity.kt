@@ -8,14 +8,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -236,15 +235,19 @@ fun EventsMapScreen(events: List<Event>, onEventClick: (Event) -> Unit) {
                         else -> BitmapDescriptorFactory.HUE_RED
                     }
 
-                    Marker(
-                        state = MarkerState(position = latLng),
-                        title = event.title,
-                        icon = BitmapDescriptorFactory.defaultMarker(hue),
-                        onClick = {
-                            onEventClick(event)
-                            true
-                        }
-                    )
+                    // Uzycie key zapobiega gubieniu pinezek przez system przy dynamicznym ladowaniu listy
+                    key(event.id) {
+                        val markerState = rememberMarkerState(position = latLng)
+                        Marker(
+                            state = markerState,
+                            title = event.title,
+                            icon = BitmapDescriptorFactory.defaultMarker(hue),
+                            onClick = {
+                                onEventClick(event)
+                                true
+                            }
+                        )
+                    }
                 }
             }
         }
