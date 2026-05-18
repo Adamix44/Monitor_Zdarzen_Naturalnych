@@ -213,23 +213,23 @@ fun EventsMapScreen(events: List<Event>, onEventClick: (Event) -> Unit) {
         position = CameraPosition.fromLatLngZoom(LatLng(0.0, 0.0), 2f)
     }
 
+    android.util.Log.d("MONITOR", "EventsMapScreen: otrzymano ${events.size} zdarzen")
+
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
         cameraPositionState = defaultCameraPosition,
-        properties = MapProperties(mapType = MapType.TERRAIN) // lepszy widok satelitarny do katastrof
+        properties = MapProperties(mapType = MapType.TERRAIN)
     ) {
-        for (event in events) {
+        events.forEach { event ->
             if (event.geometries.isNotEmpty()) {
                 val geo = event.geometries.first()
-                val coords = geo.coordinates
-                
-                // Dekodowanie JsonArray na LatLng za pomocą wydzielonej funkcji
-                val latLng = parseLatLng(coords)
+                val latLng = parseLatLng(geo.coordinates)
+
+                android.util.Log.d("MONITOR", "Zdarzenie: ${event.title}, geometries: ${event.geometries.size}, coords raw: ${geo.coordinates}, parsed: $latLng")
 
                 if (latLng != null) {
                     val catTitle = if (event.categories.isNotEmpty()) translateCategory(event.categories.first().title) else ""
-                    
-                    // Moduł 1: Kolorowe znaczniki na podstawie kategorii
+
                     val hue = when {
                         catTitle.contains("Pożary", ignoreCase = true) -> BitmapDescriptorFactory.HUE_ORANGE
                         catTitle.contains("Wulkany", ignoreCase = true) -> BitmapDescriptorFactory.HUE_ROSE
@@ -238,19 +238,15 @@ fun EventsMapScreen(events: List<Event>, onEventClick: (Event) -> Unit) {
                         else -> BitmapDescriptorFactory.HUE_RED
                     }
 
-                    // Uzycie key zapobiega gubieniu pinezek przez system przy dynamicznym ladowaniu listy
-                    key(event.id) {
-                        val markerState = rememberMarkerState(position = latLng)
-                        Marker(
-                            state = markerState,
-                            title = event.title,
-                            icon = BitmapDescriptorFactory.defaultMarker(hue),
-                            onClick = {
-                                onEventClick(event)
-                                true
-                            }
-                        )
-                    }
+                    Marker(
+                        state = MarkerState(position = latLng),
+                        title = event.title,
+                        snippet = "Kategoria: $catTitle",
+                        onClick = {
+                            onEventClick(event)
+                            true
+                        }
+                    )
                 }
             }
         }
