@@ -10,6 +10,7 @@ interface EonetApiService {
     @GET("events")
     suspend fun getEvents(
             @Query("status") status: String = "open",
+            @Query("days") days: Int = 20, // domyslnie 20 dni
             @Query("api_key") apiKey: String = BuildConfig.NASA_API_KEY
     ): EventResponse
 }

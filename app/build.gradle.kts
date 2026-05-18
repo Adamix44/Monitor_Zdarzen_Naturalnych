@@ -65,6 +65,9 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     implementation("androidx.activity:activity-compose:1.9.0")
     
+    // Rozszerzone ikony Material Design
+    implementation("androidx.compose.material:material-icons-extended")
+    
     // Odczytywanie LiveData (naszego powiadamiacza z viewmodelu) wewnatrz Compose
     implementation("androidx.compose.runtime:runtime-livedata")
 
