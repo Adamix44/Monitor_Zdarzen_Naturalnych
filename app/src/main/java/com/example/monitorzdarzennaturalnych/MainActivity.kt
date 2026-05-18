@@ -187,6 +187,24 @@ fun FiltersSection(
     }
 }
 
+// Funkcja pomocnicza dekodujaca zlozone struktury JSON na wspolrzedne
+fun parseLatLng(coords: com.google.gson.JsonArray): LatLng? {
+    try {
+        if (coords.size() == 2 && coords[0].isJsonPrimitive) {
+            return LatLng(coords[1].asDouble, coords[0].asDouble)
+        } else {
+            var current = coords
+            while (current.size() > 0 && current[0].isJsonArray) {
+                current = current[0].asJsonArray
+            }
+            if (current.size() >= 2 && current[0].isJsonPrimitive) {
+                return LatLng(current[1].asDouble, current[0].asDouble)
+            }
+        }
+    } catch (e: Exception) {}
+    return null
+}
+
 @Composable
 fun EventsMapScreen(events: List<Event>, onEventClick: (Event) -> Unit) {
     val defaultCameraPosition = rememberCameraPositionState {
@@ -203,21 +221,8 @@ fun EventsMapScreen(events: List<Event>, onEventClick: (Event) -> Unit) {
                 val geo = event.geometries.first()
                 val coords = geo.coordinates
                 
-                // Parsowanie JsonArray na LatLng uwzgledniajace mozliwosc wystapienia Point(zwykla tablica) lub Polygon (zagniezdzone tablice)
-                var latLng: LatLng? = null
-                try {
-                    if (coords.size() == 2 && coords[0].isJsonPrimitive) {
-                        latLng = LatLng(coords[1].asDouble, coords[0].asDouble)
-                    } else {
-                        var current = coords
-                        while (current.size() > 0 && current[0].isJsonArray) {
-                            current = current[0].asJsonArray
-                        }
-                        if (current.size() >= 2 && current[0].isJsonPrimitive) {
-                            latLng = LatLng(current[1].asDouble, current[0].asDouble)
-                        }
-                    }
-                } catch (e: Exception) {}
+                // Dekodowanie JsonArray na LatLng za pomocą wydzielonej funkcji
+                val latLng = parseLatLng(coords)
 
                 if (latLng != null) {
                     val catTitle = if (event.categories.isNotEmpty()) translateCategory(event.categories.first().title) else ""
@@ -290,8 +295,9 @@ fun EventDetailsSheet(event: Event) {
         if (event.geometries.isNotEmpty()) {
             val geo = event.geometries.first()
             Text(text = "Data wykrycia: ${geo.date}", fontSize = 16.sp)
-            if (geo.coordinates.size >= 2) {
-                Text(text = "Pozycja: LAT ${geo.coordinates[1]}, LNG ${geo.coordinates[0]}", fontSize = 16.sp)
+            val parsedCoords = parseLatLng(geo.coordinates)
+            if (parsedCoords != null) {
+                Text(text = "Pozycja: LAT ${parsedCoords.latitude}, LNG ${parsedCoords.longitude}", fontSize = 16.sp)
             }
         }
         
