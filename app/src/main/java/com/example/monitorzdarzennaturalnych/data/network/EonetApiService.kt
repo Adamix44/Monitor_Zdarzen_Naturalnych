@@ -9,7 +9,7 @@ import retrofit2.http.Query
 interface EonetApiService {
     @GET("events")
     suspend fun getEvents(
-            @Query("status") status: String = "open",
+            @Query("status") status: String = "all", // Zmieniono z 'open' na 'all', aby ładować zdarzenia (także te zakończone) z całego świata!
             @Query("days") days: Int = 20, // domyslnie 20 dni
             @Query("api_key") apiKey: String = BuildConfig.NASA_API_KEY
     ): EventResponse
