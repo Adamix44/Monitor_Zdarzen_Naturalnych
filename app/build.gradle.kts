@@ -80,4 +80,6 @@ dependencies {
     //Coroutines - wielowatkowosc do pobierania danych poza glownym ekranem aby go nie zablokowac
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    //WorkManager - periodyczne sprawdzanie nowych zdarzen w tle (alarm)
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
 }

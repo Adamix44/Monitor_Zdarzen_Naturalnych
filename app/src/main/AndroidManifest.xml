@@ -3,6 +3,8 @@
     <!--zgoda na pobieranie danych zewnętrznych-->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!--uprawnienie do wysyłania powiadomień (Android 13+)-->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!--ustawienie działania i ikon aplikacji-->
     <application
         android:allowBackup="true"

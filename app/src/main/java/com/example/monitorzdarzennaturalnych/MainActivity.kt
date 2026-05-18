@@ -1,8 +1,12 @@
 package com.example.monitorzdarzennaturalnych
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,9 +14,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -20,8 +27,10 @@ import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import com.example.monitorzdarzennaturalnych.data.model.Event
 import com.example.monitorzdarzennaturalnych.ui.theme.MonitorTheme
 import com.example.monitorzdarzennaturalnych.viewmodel.MainViewModel
@@ -42,6 +51,19 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Żądanie uprawnienia do powiadomień (Android 13+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                val launcher = registerForActivityResult(
+                    ActivityResultContracts.RequestPermission()
+                ) { /* wynik nie blokuje działania */ }
+                launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+
         viewModel.loadEvents()
 
         setContent {
@@ -67,14 +89,33 @@ fun MonitorZdarzenApp(viewModel: MainViewModel) {
     val selectedCategory by viewModel.selectedCategory.observeAsState(initial = "Wszystkie")
     val selectedDays by viewModel.selectedDays.observeAsState(initial = 30)
     val selectedEvent by viewModel.selectedEvent.observeAsState(initial = null)
+    val alarmEnabled by viewModel.alarmEnabled.observeAsState(initial = false)
+    val alarmRadiusKm by viewModel.alarmRadiusKm.observeAsState(initial = 0)
     
     val sheetState = rememberModalBottomSheetState()
+
+    // Stan dialogu ustawiania alarmu
+    var showAlarmDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Monitor Zdarzeń Naturalnych", fontWeight = FontWeight.Bold) },
                 actions = {
+                    // Przycisk Alarmu
+                    IconButton(onClick = {
+                        if (alarmEnabled) {
+                            viewModel.disableAlarm()
+                        } else {
+                            showAlarmDialog = true
+                        }
+                    }) {
+                        Icon(
+                            imageVector = if (alarmEnabled) Icons.Default.Notifications else Icons.Default.NotificationsOff,
+                            contentDescription = if (alarmEnabled) "Wyłącz alarm" else "Ustaw alarm",
+                            tint = if (alarmEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                     // Przełącznik Widok Listy / Mapa (Opcja C)
                     IconButton(onClick = { viewModel.setListView(!isListView) }) {
                         Icon(
@@ -91,6 +132,11 @@ fun MonitorZdarzenApp(viewModel: MainViewModel) {
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+
+            // Informacja o aktywnym alarmie
+            if (alarmEnabled) {
+                AlarmStatusBar(radiusKm = alarmRadiusKm, onDisable = { viewModel.disableAlarm() })
+            }
             
             // Komponent filtrów poziomo (Kategorie i Czas)
             FiltersSection(
@@ -131,6 +177,108 @@ fun MonitorZdarzenApp(viewModel: MainViewModel) {
             EventDetailsSheet(event = selectedEvent!!)
         }
     }
+
+    // Dialog ustawiania alarmu
+    if (showAlarmDialog) {
+        AlarmSetupDialog(
+            onDismiss = { showAlarmDialog = false },
+            onConfirm = { radiusKm ->
+                viewModel.enableAlarm(radiusKm)
+                showAlarmDialog = false
+            }
+        )
+    }
+}
+
+// --- Komponenty Alarmu ---
+
+@Composable
+fun AlarmStatusBar(radiusKm: Int, onDisable: () -> Unit) {
+    val rangeText = if (radiusKm == 0) "cała planeta" else "$radiusKm km"
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.primaryContainer,
+        tonalElevation = 2.dp
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.Notifications,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Alarm aktywny — zasięg: $rangeText",
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+            TextButton(onClick = onDisable) {
+                Text("Wyłącz", fontSize = 12.sp)
+            }
+        }
+    }
+}
+
+@Composable
+fun AlarmSetupDialog(onDismiss: () -> Unit, onConfirm: (Int) -> Unit) {
+    var radiusText by remember { mutableStateOf("") }
+    var useGlobal by remember { mutableStateOf(true) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Ustaw alarm", fontWeight = FontWeight.Bold) },
+        text = {
+            Column {
+                Text(
+                    "Otrzymasz powiadomienie, gdy pojawi się nowe zdarzenie naturalne.",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(selected = useGlobal, onClick = { useGlobal = true })
+                    Text("Cała planeta", modifier = Modifier.clickable { useGlobal = true })
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(selected = !useGlobal, onClick = { useGlobal = false })
+                    Text("Własny zasięg (km)", modifier = Modifier.clickable { useGlobal = false })
+                }
+
+                if (!useGlobal) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = radiusText,
+                        onValueChange = { radiusText = it.filter { c -> c.isDigit() } },
+                        label = { Text("Zasięg w km") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = {
+                val radius = if (useGlobal) 0 else (radiusText.toIntOrNull() ?: 0)
+                onConfirm(radius)
+            }) {
+                Text("Ustaw alarm")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Anuluj")
+            }
+        }
+    )
 }
 
 // --- Komponenty UI ---

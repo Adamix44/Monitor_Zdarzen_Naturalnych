@@ -1,12 +1,17 @@
 package com.example.monitorzdarzennaturalnych.viewmodel
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.*
+import com.example.monitorzdarzennaturalnych.data.AlarmPreferences
 import com.example.monitorzdarzennaturalnych.data.model.Event
 import com.example.monitorzdarzennaturalnych.repository.EventRepository
+import com.example.monitorzdarzennaturalnych.worker.EventAlarmWorker
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
 fun translateCategory(title: String): String {
     return when(title) {
@@ -28,8 +33,9 @@ fun translateCategory(title: String): String {
 }
 
 // oddziela logike od ekranu
-class MainViewModel : ViewModel() {
+class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = EventRepository()
+    private val alarmPreferences = AlarmPreferences(application)
 
     // Wszystkie pobrane dane (nieprzefiltrowane)
     private val _allEvents = MutableLiveData<List<Event>>()
@@ -62,6 +68,13 @@ class MainViewModel : ViewModel() {
     private val _isListView = MutableLiveData<Boolean>(false)
     val isListView: LiveData<Boolean> get() = _isListView
 
+    // --- STAN ALARMU ---
+    private val _alarmEnabled = MutableLiveData<Boolean>(alarmPreferences.alarmEnabled)
+    val alarmEnabled: LiveData<Boolean> get() = _alarmEnabled
+
+    private val _alarmRadiusKm = MutableLiveData<Int>(alarmPreferences.radiusKm)
+    val alarmRadiusKm: LiveData<Int> get() = _alarmRadiusKm
+
 
     // --- FUNKCJE ZMIANY STANU ---
 
@@ -81,6 +94,56 @@ class MainViewModel : ViewModel() {
     fun setDays(days: Int) {
         _selectedDays.value = days
         loadEvents() // zmiana czasu wymaga pobrania nowych danych z NASA
+    }
+
+    // --- FUNKCJE ALARMU ---
+
+    /**
+     * Włącza alarm z podanym zasięgiem w kilometrach.
+     * radiusKm = 0 oznacza monitorowanie całej planety.
+     */
+    fun enableAlarm(radiusKm: Int) {
+        alarmPreferences.alarmEnabled = true
+        alarmPreferences.radiusKm = radiusKm
+
+        // Zapamiętaj aktualnie znane zdarzenia, żeby nie powiadamiać o już istniejących
+        val currentIds = _allEvents.value?.map { it.id }?.toSet() ?: emptySet()
+        alarmPreferences.lastCheckedEventIds = currentIds
+
+        _alarmEnabled.value = true
+        _alarmRadiusKm.value = radiusKm
+
+        scheduleAlarmWorker()
+    }
+
+    /** Wyłącza alarm i zatrzymuje periodyczne sprawdzanie */
+    fun disableAlarm() {
+        alarmPreferences.clearAlarm()
+        _alarmEnabled.value = false
+        _alarmRadiusKm.value = 0
+
+        WorkManager.getInstance(getApplication<Application>())
+            .cancelUniqueWork(EventAlarmWorker.WORK_NAME)
+    }
+
+    /** Planuje periodyczne sprawdzanie zdarzeń co 15 minut */
+    private fun scheduleAlarmWorker() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val workRequest = PeriodicWorkRequestBuilder<EventAlarmWorker>(
+            15, TimeUnit.MINUTES // minimalne okno dla WorkManager
+        )
+            .setConstraints(constraints)
+            .build()
+
+        WorkManager.getInstance(getApplication<Application>())
+            .enqueueUniquePeriodicWork(
+                EventAlarmWorker.WORK_NAME,
+                ExistingPeriodicWorkPolicy.UPDATE,
+                workRequest
+            )
     }
 
     // --- FUNKCJE SIECIOWE ---
@@ -119,3 +182,4 @@ class MainViewModel : ViewModel() {
         _events.value = filtered
     }
 }
+
