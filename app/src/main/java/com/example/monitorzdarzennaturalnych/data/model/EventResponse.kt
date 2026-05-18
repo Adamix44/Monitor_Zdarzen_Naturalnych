@@ -1,6 +1,7 @@
 package com.example.monitorzdarzennaturalnych.data.model
 
 import com.google.gson.annotations.SerializedName
+import com.google.gson.JsonArray
 
 // glowne dane odbierane od NASA
 data class EventResponse(
@@ -27,5 +28,5 @@ data class Geometry(
         @SerializedName("date") val date: String,
         @SerializedName("type") val type: String,
         @SerializedName("coordinates")
-        val coordinates: List<Double> // zapis [dlugosc, szerokosc] geograficzna
+        val coordinates: JsonArray // uzywamy JsonArray, zeby obsłużyć formaty Point i Polygon
 )

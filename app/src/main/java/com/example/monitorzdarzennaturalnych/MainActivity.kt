@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import com.example.monitorzdarzennaturalnych.data.model.Event
 import com.example.monitorzdarzennaturalnych.ui.theme.MonitorTheme
 import com.example.monitorzdarzennaturalnych.viewmodel.MainViewModel
+import com.example.monitorzdarzennaturalnych.viewmodel.translateCategory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -70,7 +71,7 @@ fun MonitorZdarzenApp(viewModel: MainViewModel) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Monitor NASA EONET", fontWeight = FontWeight.Bold) },
+                title = { Text("Monitor Zdarzeń Naturalnych", fontWeight = FontWeight.Bold) },
                 actions = {
                     // Przełącznik Widok Listy / Mapa (Opcja C)
                     IconButton(onClick = { viewModel.setListView(!isListView) }) {
@@ -200,21 +201,38 @@ fun EventsMapScreen(events: List<Event>, onEventClick: (Event) -> Unit) {
         for (event in events) {
             if (event.geometries.isNotEmpty()) {
                 val geo = event.geometries.first()
-                if (geo.coordinates.size >= 2) {
-                    val position = LatLng(geo.coordinates[1], geo.coordinates[0])
-                    val catTitle = if (event.categories.isNotEmpty()) event.categories.first().title else ""
+                val coords = geo.coordinates
+                
+                // Parsowanie JsonArray na LatLng uwzgledniajace mozliwosc wystapienia Point(zwykla tablica) lub Polygon (zagniezdzone tablice)
+                var latLng: LatLng? = null
+                try {
+                    if (coords.size() == 2 && coords[0].isJsonPrimitive) {
+                        latLng = LatLng(coords[1].asDouble, coords[0].asDouble)
+                    } else {
+                        var current = coords
+                        while (current.size() > 0 && current[0].isJsonArray) {
+                            current = current[0].asJsonArray
+                        }
+                        if (current.size() >= 2 && current[0].isJsonPrimitive) {
+                            latLng = LatLng(current[1].asDouble, current[0].asDouble)
+                        }
+                    }
+                } catch (e: Exception) {}
+
+                if (latLng != null) {
+                    val catTitle = if (event.categories.isNotEmpty()) translateCategory(event.categories.first().title) else ""
                     
                     // Moduł 1: Kolorowe znaczniki na podstawie kategorii
                     val hue = when {
-                        catTitle.contains("Wildfires", ignoreCase = true) -> BitmapDescriptorFactory.HUE_ORANGE
-                        catTitle.contains("Volcanoes", ignoreCase = true) -> BitmapDescriptorFactory.HUE_ROSE
-                        catTitle.contains("Storms", ignoreCase = true) -> BitmapDescriptorFactory.HUE_AZURE
-                        catTitle.contains("Ice", ignoreCase = true) -> BitmapDescriptorFactory.HUE_CYAN
+                        catTitle.contains("Pożary", ignoreCase = true) -> BitmapDescriptorFactory.HUE_ORANGE
+                        catTitle.contains("Wulkany", ignoreCase = true) -> BitmapDescriptorFactory.HUE_ROSE
+                        catTitle.contains("burze", ignoreCase = true) -> BitmapDescriptorFactory.HUE_AZURE
+                        catTitle.contains("Lód", ignoreCase = true) -> BitmapDescriptorFactory.HUE_CYAN
                         else -> BitmapDescriptorFactory.HUE_RED
                     }
 
                     Marker(
-                        state = MarkerState(position = position),
+                        state = MarkerState(position = latLng),
                         title = event.title,
                         icon = BitmapDescriptorFactory.defaultMarker(hue),
                         onClick = {
@@ -244,7 +262,7 @@ fun EventsListScreen(events: List<Event>, onEventClick: (Event) -> Unit) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(text = event.title, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                     Spacer(modifier = Modifier.height(4.dp))
-                    val catTitle = if (event.categories.isNotEmpty()) event.categories.first().title else "Nieznana Kategoria"
+                    val catTitle = if (event.categories.isNotEmpty()) translateCategory(event.categories.first().title) else "Nieznana Kategoria"
                     val date = if (event.geometries.isNotEmpty()) event.geometries.first().date else "Brak daty"
                     Text(text = "Kategoria: $catTitle", color = MaterialTheme.colorScheme.primary)
                     Text(text = "Zanotowano: $date", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -264,7 +282,7 @@ fun EventDetailsSheet(event: Event) {
         Text(text = event.title, fontWeight = FontWeight.Bold, fontSize = 24.sp, color = MaterialTheme.colorScheme.primary)
         Spacer(modifier = Modifier.height(16.dp))
         
-        val catTitle = if (event.categories.isNotEmpty()) event.categories.first().title else "Nieznana Kategoria"
+        val catTitle = if (event.categories.isNotEmpty()) translateCategory(event.categories.first().title) else "Nieznana Kategoria"
         Text(text = "Kategoria: $catTitle", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
         
         Spacer(modifier = Modifier.height(8.dp))

@@ -8,6 +8,25 @@ import com.example.monitorzdarzennaturalnych.data.model.Event
 import com.example.monitorzdarzennaturalnych.repository.EventRepository
 import kotlinx.coroutines.launch
 
+fun translateCategory(title: String): String {
+    return when(title) {
+        "Wildfires" -> "Pożary lasów"
+        "Volcanoes" -> "Wulkany"
+        "Severe Storms" -> "Gwałtowne burze"
+        "Sea and Lake Ice" -> "Lód na morzach i jeziorach"
+        "Floods" -> "Powodzie"
+        "Earthquakes" -> "Trzęsienia ziemi"
+        "Drought" -> "Susze"
+        "Dust and Haze" -> "Zadymienie i mgły"
+        "Manmade" -> "Stworzone przez człowieka"
+        "Snow" -> "Śnieżyce"
+        "Temperature Extremes" -> "Ekstremalne temperatury"
+        "Water Color" -> "Zabarwienia wody"
+        "Landslides" -> "Osuwiska"
+        else -> title
+    }
+}
+
 // oddziela logike od ekranu
 class MainViewModel : ViewModel() {
     private val repository = EventRepository()
@@ -76,8 +95,8 @@ class MainViewModel : ViewModel() {
             val result = repository.getEvents(days)
             _allEvents.value = result
             
-            // Wydobycie unikalnych nazw kategorii z pobranych zjawisk
-            val cats = result.flatMap { it.categories }.map { it.title }.distinct().sorted()
+            // Wydobycie unikalnych nazw kategorii i przetlumaczenie ich
+            val cats = result.flatMap { it.categories }.map { translateCategory(it.title) }.distinct().sorted()
             _availableCategories.value = listOf("Wszystkie") + cats
 
             applyFilters()
@@ -94,7 +113,7 @@ class MainViewModel : ViewModel() {
             all
         } else {
             all.filter { event -> 
-                event.categories.any { it.title == cat }
+                event.categories.any { translateCategory(it.title) == cat }
             }
         }
         _events.value = filtered
