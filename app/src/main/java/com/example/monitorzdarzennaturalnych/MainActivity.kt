@@ -209,15 +209,37 @@ fun parseLatLng(coords: com.google.gson.JsonArray): LatLng? {
 
 @Composable
 fun EventsMapScreen(events: List<Event>, onEventClick: (Event) -> Unit) {
-    val defaultCameraPosition = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(LatLng(0.0, 0.0), 2f)
+    // Kamera domyslnie na srodek, ale jesli sa zdarzenia, przesuwamy ja na pierwsze z nich
+    val initialPosition = remember(events) {
+        if (events.isNotEmpty() && events.first().geometries.isNotEmpty()) {
+            parseLatLng(events.first().geometries.first().coordinates) ?: LatLng(0.0, 0.0)
+        } else {
+            LatLng(0.0, 0.0)
+        }
+    }
+
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(initialPosition, 3f)
+    }
+
+    // Automatyczne przesuniecie kamery gdy zaktualizuja sie zdarzenia
+    LaunchedEffect(events) {
+        if (events.isNotEmpty() && events.first().geometries.isNotEmpty()) {
+            val firstLocation = parseLatLng(events.first().geometries.first().coordinates)
+            if (firstLocation != null) {
+                cameraPositionState.animate(
+                    update = com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(firstLocation, 4f),
+                    durationMs = 1500
+                )
+            }
+        }
     }
 
     android.util.Log.d("MONITOR", "EventsMapScreen: otrzymano ${events.size} zdarzen")
 
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
-        cameraPositionState = defaultCameraPosition,
+        cameraPositionState = cameraPositionState,
         properties = MapProperties(mapType = MapType.TERRAIN)
     ) {
         events.forEach { event ->
@@ -242,6 +264,7 @@ fun EventsMapScreen(events: List<Event>, onEventClick: (Event) -> Unit) {
                         state = MarkerState(position = latLng),
                         title = event.title,
                         snippet = "Kategoria: $catTitle",
+                        icon = BitmapDescriptorFactory.defaultMarker(hue),
                         onClick = {
                             onEventClick(event)
                             true
