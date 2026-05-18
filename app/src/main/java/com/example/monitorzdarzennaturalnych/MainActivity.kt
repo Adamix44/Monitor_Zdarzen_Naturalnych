@@ -35,6 +35,7 @@ import com.google.maps.android.compose.MapType
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.rememberMarkerState
 
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
