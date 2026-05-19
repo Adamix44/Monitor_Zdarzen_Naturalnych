@@ -51,6 +51,8 @@ android {
 dependencies {
     //podstawowe zestawy dla jezyka
     implementation("androidx.core:core-ktx:1.12.0")
+    //Material 3 (motyw XML wymagany przez system Android)
+    implementation("com.google.android.material:material:1.11.0")
     
     //narzedzia mvvm
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")

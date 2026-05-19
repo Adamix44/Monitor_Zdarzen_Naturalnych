@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Uproszczony motyw systemowy (Reszta jest obslugiwana przez Compose w Theme.kt) -->
-    <style name="Theme.MonitorZdarzenNaturalnych" parent="android:Theme.Material.Light.NoActionBar">
-        <!-- Kolor paska powiadomien w telefonie -->
+    <!-- Motyw bazowy dla systemu Android – reszta jest obsługiwana przez Compose w Theme.kt -->
+    <style name="Theme.MonitorZdarzenNaturalnych" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Kolor paska powiadomień w telefonie -->
         <item name="android:statusBarColor">@color/primary_variant</item>
     </style>
 </resources>
