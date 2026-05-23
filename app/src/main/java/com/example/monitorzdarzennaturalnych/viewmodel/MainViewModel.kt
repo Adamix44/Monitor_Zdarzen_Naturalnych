@@ -13,6 +13,15 @@ import com.example.monitorzdarzennaturalnych.worker.EventAlarmWorker
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
+/**
+ * Tłumaczy oficjalne, angielskie nazwy kategorii zdarzeń zwracane przez NASA EONET API
+ * na nazwy w języku polskim.
+ * Funkcja używa wyrażenia `when` działającego jako instrukcja warunkowa dopasowania wzorca.
+ * Jeśli kategoria nie pasuje do żadnego ze zdefiniowanych kluczy, zwracana jest surowa nazwa angielska.
+ *
+ * @param title Angielska nazwa kategorii (np. "Wildfires").
+ * @return Przetłumaczona nazwa kategorii w języku polskim (np. "Pożary lasów").
+ */
 fun translateCategory(title: String): String {
     return when(title) {
         "Wildfires" -> "Pożary lasów"
@@ -32,39 +41,50 @@ fun translateCategory(title: String): String {
     }
 }
 
-// oddziela logike od ekranu
+/**
+ * Główna klasa ViewModel w architekturze MVVM (Model-View-ViewModel) dla głównego ekranu aplikacji.
+ * Odpowiada za:
+ * 1.Przechowywanie i zarządzanie stanem interfejsu użytkownika w sposób odporny na zmiany konfiguracji (np. obrót ekranu).
+ * 2.Pośredniczenie między warstwą danych ([EventRepository]) a widokiem (Jetpack Compose).
+ * 3.Obsługę logiki, takiej jak filtrowanie danych 
+ *
+ * Stosuje zasadę enkapsulacji. Właściwości modyfikowalne (_allEvents, _isLoading itp.) są prywatnymi obiektami
+ * typu [MutableLiveData], natomiast widok ma dostęp wyłącznie do ich niemodyfikowalnych, publicznych odpowiedników typu [LiveData].
+ */
 class MainViewModel(application: Application) : AndroidViewModel(application) {
+    
+    /**repozytorium służąca do komunikacji z API NASA.*/
     private val repository = EventRepository()
     private val alarmPreferences = AlarmPreferences(application)
 
-    // Wszystkie pobrane dane (nieprzefiltrowane)
+    /**kontener/bufor przechowujący nieprzefiltrowaną listę wszystkich pobranych z NASA zdarzeń.*/
     private val _allEvents = MutableLiveData<List<Event>>()
 
-    // Stan Ladowania
+    /** Stan ładowania danych (true - trwa pobieranie, false - bezczynność).*/
     private val _isLoading = MutableLiveData<Boolean>(false)
     val isLoading: LiveData<Boolean> get() = _isLoading
 
-    // Filtry: Kategoria
+    /**Aktualnie zaznaczona przez użytkownika kategoria filtrowania (domyślnie "Wszystkie").*/
     private val _selectedCategory = MutableLiveData<String>("Wszystkie")
     val selectedCategory: LiveData<String> get() = _selectedCategory
 
-    // Filtry: Czas (Opcja A)
-    private val _selectedDays = MutableLiveData<Int>(30) // domyslnie ostatni miesiac
+    /**Wybrany zakres czasu w dniach do filtrowania danych (domyślnie 30 dni).*/
+    private val _selectedDays = MutableLiveData<Int>(30)
     val selectedDays: LiveData<Int> get() = _selectedDays
 
-    // Dostepne Kategorie z NASA
+    /**lista kategorii zdarzeń dostępnych w pobranych aktualnie danych NASA.*/
     private val _availableCategories = MutableLiveData<List<String>>(listOf("Wszystkie"))
     val availableCategories: LiveData<List<String>> get() = _availableCategories
 
-    // Ostateczna, przefiltrowana lista dla Mapy/Listy
+    /**Przefiltrowana lista zdarzeń, która jest renderowana na mapie*/
     private val _events = MutableLiveData<List<Event>>()
     val events: LiveData<List<Event>> get() = _events
 
-    // Wybrane zjawisko (do pokazania dolnej karty)
+    /**Zdarzenie wybrane/kliknięte przez użytkownika (służy do otwierania dolnego panelu szczegółów)*/
     private val _selectedEvent = MutableLiveData<Event?>()
     val selectedEvent: LiveData<Event?> get() = _selectedEvent
 
-    // Tryb Wyswietlania: Mapa vs Lista (Opcja C)
+    /**(true - widok listy zdarzeń, false - widok interaktywnej mapy).*/
     private val _isListView = MutableLiveData<Boolean>(false)
     val isListView: LiveData<Boolean> get() = _isListView
 
@@ -76,24 +96,44 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val alarmRadiusKm: LiveData<Int> get() = _alarmRadiusKm
 
 
-    // --- FUNKCJE ZMIANY STANU ---
-
-    fun setListView(isList: Boolean) {
+    //funkcje zmiany stanu/intencje uzytkownika
+    /**
+     * Zmienia tryb wyświetlania między mapą a listą.
+     * @param isList True dla widoku listy, false dla widoku mapy.
+     */
+    fun setListView(isList: Boolean)
+    {
         _isListView.value = isList
     }
 
-    fun selectEvent(event: Event?) {
+    /**
+     * Wybiera konkretne zdarzenie w celu wyświetlenia jego szczegółów na dolnej karcie.
+     * @param event Obiekt zdarzenia 
+     */
+    fun selectEvent(event: Event?) 
+    {
         _selectedEvent.value = event
     }
 
-    fun setCategory(category: String) {
+    /**
+     * uruchamia filtrowanie
+     * @param category Nazwa kategorii w języku polskim.
+     */
+    fun setCategory(category: String) 
+    {
         _selectedCategory.value = category
-        applyFilters() // filtrowanie offline (tylko ukrywa pinezki)
+        applyFilters()
     }
 
-    fun setDays(days: Int) {
+    /**
+     * Zmienia zakres dni
+     * Ta zmiana wymaga pobrania nowych danych z NASA, dlatego wywoływana jest metoda [loadEvents].
+     * @param days Liczba dni wstecz 
+     */
+    fun setDays(days: Int) 
+    {
         _selectedDays.value = days
-        loadEvents() // zmiana czasu wymaga pobrania nowych danych z NASA
+        loadEvents()
     }
 
     // --- FUNKCJE ALARMU ---
@@ -146,39 +186,68 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             )
     }
 
-    // --- FUNKCJE SIECIOWE ---
-
-    // funkcja wymuszajaca odswiezenie
-    fun loadEvents() {
+    //funkcje sieciowe
+    /**
+     * pobieranie danych z NASA EONET API.
+     * Jeśli użytkownik opuści ekran i ViewModel zostanie zniszczony, wszelkie trwające żądania sieciowe
+     * w tym zakresie zostaną automatycznie anulowane.
+     */
+    fun loadEvents()
+    {
         viewModelScope.launch {
+            //wskaźnik ładowania w UI
             _isLoading.value = true
             
-            // pobranie danych na podstawie wybranego czasu
+            //pobranie aktualnie wybranego zakresu dni
             val days = _selectedDays.value ?: 30
+            
+            //pobranie danych z repozytorium
             val result = repository.getEvents(days)
+            
+            //zapisanie pełnej listy
             _allEvents.value = result
             
-            // Wydobycie unikalnych nazw kategorii i przetlumaczenie ich
-            val cats = result.flatMap { it.categories }.map { translateCategory(it.title) }.distinct().sorted()
+            //flatMap - zmiana list kategorii ze wszystkich zdarzeń do jednej listy.
+            //map - przetłumaczenie nazw kategorii na język polski.
+            //distinct - usunięcie duplikatów.
+            //sorted - alfabetyczne posortowanie.
+            val cats = result.flatMap { it.categories }
+                             .map { translateCategory(it.title) }
+                             .distinct()
+                             .sorted()
+            
+            //lista kategorii z domyślną opcją "Wszystkie" na początku
             _availableCategories.value = listOf("Wszystkie") + cats
 
+            //zastosowanie filtrów na pobranych danych
             applyFilters()
+            
+            //wyłączenie wskaźnika ładowania w UI
             _isLoading.value = false
         }
     }
 
-    // Aplikuje wybrane filtry na pobrane juz dane
-    private fun applyFilters() {
+    /**
+     * filtruje pełną listę zdarzeń przechowywaną w buforze [_allEvents] 
+     * na podstawie wybranej kategorii [_selectedCategory] i publikuje wynik do [_events].
+     */
+    private fun applyFilters()
+    {
         val all = _allEvents.value ?: emptyList()
         val cat = _selectedCategory.value ?: "Wszystkie"
         
         val filtered = if (cat == "Wszystkie") {
+            //jeśli "Wszystkie" -> przekazujemy kompletną listę
             all
-        } else {
+        } 
+        else 
+        {
+            //sprawdzamy czy zdarzenie ma kategorię o przetłumaczonej nazwie równej 'cat'
             all.filter { event -> 
                 event.categories.any { translateCategory(it.title) == cat }
             }
         }
+        //aktualizacja LiveData 
         _events.value = filtered
     }
 }

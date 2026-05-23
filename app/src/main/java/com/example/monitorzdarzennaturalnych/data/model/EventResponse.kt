@@ -3,30 +3,59 @@ package com.example.monitorzdarzennaturalnych.data.model
 import com.google.gson.annotations.SerializedName
 import com.google.gson.JsonArray
 
-// glowne dane odbierane od NASA
+/**
+ * Główna klasa modelu danych (DTO - Data Transfer Object) reprezentująca pełną odpowiedź z NASA EONET API.
+ * 
+ * Klasa mapuje główny obiekt JSON zwracany przez zapytanie do serwera NASA.
+ * Korzysta ze słowa kluczowego `data class` w celu automatycznego wygenerowania metod.
+ */
 data class EventResponse(
+        //Tytuł lub opis źródła danych 
         @SerializedName("title") val title: String,
+        //Lista wszystkich zdarzeń naturalnych zwróconych przez serwer. 
         @SerializedName("events") val events: List<Event>
 )
 
-// pojedyncze wydarzenie
+//Reprezentuje pojedyncze zdarzenie naturalne 
 data class Event(
+        //Unikalny identyfikator zdarzenia w systemie NASA (np. "EONET_5112")
         @SerializedName("id") val id: String,
+        //Nazwa zdarzenia nadana przez NASA (np. "Wildfire - Los Angeles"). 
         @SerializedName("title") val title: String,
+        
+        //Lista kategorii przypisanych do zdarzenia 
         @SerializedName("categories") val categories: List<Category>,
+        //Lista obszaróq geometrycznych powiązanych z tym zdarzeniem 
         @SerializedName("geometry") val geometries: List<Geometry>
 )
 
-// kategoria pojedynczego wydarzenia
+
+//Reprezentuje kategorię tematyczną zdarzenia 
 data class Category(
+        //Identyfikator numeryczny lub tekstowy kategorii (np. "wildfires"). 
         @SerializedName("id") val id: String,
+        //nazwa kategorii w języku angielskim
         @SerializedName("title") val title: String
 )
 
-// dokladny czas wykrycia oraz wspolrzedne geograficzne
+
+//Reprezentuje dane (gdzie i kiedy zdarzenie miało miejsce)
 data class Geometry(
+        //Data i godzina rejestracji zdarzenia 
         @SerializedName("date") val date: String,
+        //Typ geometrii zwracany przez NASA (np. "Point" - punkt geograficzny, "Polygon" - wielokąt)
         @SerializedName("type") val type: String,
+        
+        //Surowe współrzędne geograficzne w postaci obiektu [JsonArray] z biblioteki Gson.
+        //Wybór [JsonArray] jestcelowy: NASA EONET API w zależności od typu geometrii (`type`)
+        //zwraca współrzędne w różnych formatach strukturalnych:
+        //- Dla punktu ("Point"): pojedyncza płaska tablica `[długość, szerokość]` (np. `[-120.4, 34.2]`).
+        //- Dla linii lub wielokątów ("Polygon", "LineString"): głęboko zagnieżdżona tablica współrzędnych (np. `[[[lng, lat], [lng, lat]]]`)
+        /* 
+         * Użycie dynamicznego [JsonArray] chroni aplikację przed awarią (Crash) podczas deserializacji
+         * i umożliwia ręczne odczytanie współrzędnych za pomocą parsera.
+         */
         @SerializedName("coordinates")
-        val coordinates: JsonArray // uzywamy JsonArray, zeby obsłużyć formaty Point i Polygon
+        val coordinates: JsonArray
 )
+

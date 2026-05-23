@@ -19,6 +19,14 @@ import com.example.monitorzdarzennaturalnych.repository.EventRepository
 import com.example.monitorzdarzennaturalnych.viewmodel.translateCategory
 import kotlin.math.*
 
+/**
+ * Worker wykonujący cykliczne zadania w tle za pomocą WorkManager.
+ * Odpowiada za:
+ * - Pobranie najnowszych zdarzeń naturalnych z ostatnich 7 dni w tle
+ * - Odfiltrowanie zdarzeń, o których użytkownik został już powiadomiony (porównanie ID)
+ * - Obliczenie dystansu przy użyciu wzoru Haversine, jeśli ustawiony jest promień geograficzny
+ * - Wysłanie powiadomienia systemowego o nowych istotnych zdarzeniach
+ */
 class EventAlarmWorker(
     appContext: Context,
     params: WorkerParameters
@@ -29,18 +37,23 @@ class EventAlarmWorker(
         const val NOTIFICATION_ID = 1001
         const val WORK_NAME = "event_alarm_periodic"
         private const val TAG = "EventAlarmWorker"
-        private const val EARTH_RADIUS_KM = 6371.0
+        private const val EARTH_RADIUS_KM = 6371.0 // Promień Ziemi do wzoru Haversine
     }
 
+    /**
+     * Główny cykl pracy workera wywoływany przez system Android.
+     */
     override suspend fun doWork(): Result {
         val prefs = AlarmPreferences(applicationContext)
 
+        // Jeżeli alarm został wyłączony w preferencjach, kończymy pracę
         if (!prefs.alarmEnabled) {
             return Result.success()
         }
 
         return try {
             val repository = EventRepository()
+            // Pobieramy zdarzenia z ostatnich 7 dni w tle
             val allEvents = repository.getEvents(7)
 
             val radiusKm = prefs.radiusKm
@@ -48,8 +61,10 @@ class EventAlarmWorker(
             val userLng = prefs.userLng
             val knownIds = prefs.lastCheckedEventIds
 
+            // Filtrujemy tylko te zdarzenia, których jeszcze nie powiadamialiśmy
             val newEvents = allEvents.filter { it.id !in knownIds }
 
+            // Filtrujemy geograficznie, jeśli ustawiony jest promień lokalny
             val relevantEvents = if (radiusKm > 0) {
                 newEvents.filter { event ->
                     isEventInRadius(event, userLat, userLng, radiusKm.toDouble())
@@ -58,28 +73,35 @@ class EventAlarmWorker(
                 newEvents
             }
 
+            // Jeśli znaleziono nowe ważne zdarzenia, wysyłamy powiadomienie
             if (relevantEvents.isNotEmpty()) {
                 sendNotification(relevantEvents)
             }
 
+            // Zapisujemy listę ID jako sprawdzoną, aby zapobiec duplikatom powiadomień
             prefs.lastCheckedEventIds = allEvents.map { it.id }.toSet()
             Result.success()
         } catch (e: Exception) {
             Log.e(TAG, "Blad podczas sprawdzania zdarzen", e)
-            Result.retry()
+            Result.retry() // W przypadku błędu sieci, WorkManager spróbuje ponownie później
         }
     }
 
+    /**
+     * Sprawdza, czy punkt geograficzny zdarzenia znajduje się w zadanym promieniu (radiusKm) od pozycji użytkownika.
+     */
     private fun isEventInRadius(event: Event, userLat: Double, userLng: Double, radiusKm: Double): Boolean {
         if (event.geometries.isEmpty()) return false
         val geo = event.geometries.first()
         val coords = geo.coordinates
         try {
+            // Przypadek 1: Standardowe współrzędne [longitude, latitude]
             if (coords.size() >= 2 && coords[0].isJsonPrimitive) {
                 val eventLng = coords[0].asDouble
                 val eventLat = coords[1].asDouble
                 return haversineDistance(userLat, userLng, eventLat, eventLng) <= radiusKm
             } else {
+                // Przypadek 2: Zagnieżdżona struktura współrzędnych wielokąta
                 var current = coords
                 while (current.size() > 0 && current[0].isJsonArray) {
                     current = current[0].asJsonArray
@@ -96,6 +118,9 @@ class EventAlarmWorker(
         return false
     }
 
+    /**
+     * Oblicza odległość w kilometrach między dwoma punktami (lat/lng) przy użyciu formuły Haversine.
+     */
     private fun haversineDistance(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Double {
         val dLat = Math.toRadians(lat2 - lat1)
         val dLng = Math.toRadians(lng2 - lng1)
@@ -105,6 +130,9 @@ class EventAlarmWorker(
         return EARTH_RADIUS_KM * c
     }
 
+    /**
+     * Przygotowuje i wysyła systemowe powiadomienie push z podsumowaniem nowych zdarzeń.
+     */
     private fun sendNotification(events: List<Event>) {
         createNotificationChannel()
 
@@ -113,6 +141,7 @@ class EventAlarmWorker(
         val catTitle = if (firstEvent.categories.isNotEmpty())
             translateCategory(firstEvent.categories.first().title) else "Zdarzenie"
 
+        // Dynamiczny tytuł i treść w zależności od liczby nowych zdarzeń
         val title = if (count == 1) "Nowe zdarzenie naturalne!"
             else "Nowe zdarzenia naturalne! ($count)"
 
@@ -127,6 +156,7 @@ class EventAlarmWorker(
             .setAutoCancel(true)
             .build()
 
+        // Sprawdzenie wymaganego uprawnienia dla Androida 13+ przed wysłaniem powiadomienia
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.POST_NOTIFICATIONS)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -137,6 +167,9 @@ class EventAlarmWorker(
         NotificationManagerCompat.from(applicationContext).notify(NOTIFICATION_ID, notification)
     }
 
+    /**
+     * Tworzy kanał powiadomień (Notification Channel) wymagany na systemach Android 8.0+.
+     */
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(

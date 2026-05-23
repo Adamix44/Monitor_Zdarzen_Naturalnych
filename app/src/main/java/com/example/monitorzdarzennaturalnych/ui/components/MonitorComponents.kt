@@ -31,8 +31,16 @@ import com.example.monitorzdarzennaturalnych.data.model.Event
 import com.example.monitorzdarzennaturalnych.ui.theme.*
 import com.example.monitorzdarzennaturalnych.viewmodel.translateCategory
 
-// ─── Top Bar ───
+// ─── Top Bar (Górny Pasek Aplikacji) ───
 
+/**
+ * Górny pasek nawigacyjny aplikacji (Top Bar).
+ * Prezentuje:
+ * - Logo/ikonę kuli ziemskiej z gradientem
+ * - Nazwę aplikacji "Monitor Zdarzeń"
+ * - Przycisk dzwonka do konfiguracji alarmów (z dynamiczną ikoną/kolorem w zależności od stanu włączenia)
+ * - Przycisk przełączania widoku (Mapa / Lista)
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MonitorTopBar(
@@ -123,11 +131,19 @@ fun MonitorTopBar(
     }
 }
 
-// ─── Alarm Status Bar ───
+// ─── Alarm Status Bar (Pasek Statusu Aktywnego Alarmu) ───
 
+/**
+ * Pasek informujący użytkownika o aktywnym monitorowaniu w tle.
+ * Wyświetla:
+ * - Zieloną pulsującą diodę (animacja alpha z nieskończonym powtórzeniem) sygnalizującą działanie radaru
+ * - Informację o zasięgu monitorowania (np. cała planeta lub określony dystans)
+ * - Przycisk "Wyłącz" pozwalający na natychmiastowe usunięcie zaplanowanego zadania w tle
+ */
 @Composable
 fun AlarmStatusBar(radiusKm: Int, onDisable: () -> Unit) {
     val rangeText = if (radiusKm == 0) "cała planeta" else "$radiusKm km"
+    // Tworzenie zapętlonej animacji pulsowania zielonej kropki
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val pulseAlpha by infiniteTransition.animateFloat(
         initialValue = 0.6f, targetValue = 1f,
@@ -176,8 +192,14 @@ fun AlarmStatusBar(radiusKm: Int, onDisable: () -> Unit) {
     }
 }
 
-// ─── Filters Section (Chips + Time Dropdown) ───
+// ─── Filters Section (Sekcja Filtracji - Kategorie i Czas) ───
 
+/**
+ * Sekcja filtracji umieszczona pod górnym paskiem.
+ * Pozwala użytkownikowi na:
+ * - Wybór kategorii zdarzeń z poziomo przewijanego paska chipów (FilterChip)
+ * - Filtrowanie czasu za pomocą chipa z rozwijanym menu DropdownMenu (AssistChip)
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FiltersSection(
@@ -188,7 +210,7 @@ fun FiltersSection(
     onDaysSelected: (Int) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        // Chipy kategorii (teraz na górze)
+        // Chipy kategorii przewijane w poziomie
         LazyRow(
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp),
             contentPadding = PaddingValues(horizontal = 16.dp),
@@ -321,8 +343,15 @@ fun FiltersSection(
     }
 }
 
-// ─── Events List Screen ───
+// ─── Events List Screen (Widok Listy Zdarzeń) ───
 
+/**
+ * Komponent widoku listy, wyświetlający przefiltrowane katastrofy naturalne.
+ * Każdy wiersz reprezentuje elegancka karta (Card) z:
+ * - Kolorową ikoną odpowiadającą typowi zagrożenia
+ * - Tytułem oraz datą i spolszczoną kategorią zdarzenia
+ * - Strzałką wskazującą na możliwość kliknięcia i otwarcia szczegółów
+ */
 @Composable
 fun EventsListScreen(events: List<Event>, onEventClick: (Event) -> Unit) {
     LazyColumn(
@@ -331,6 +360,7 @@ fun EventsListScreen(events: List<Event>, onEventClick: (Event) -> Unit) {
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         items(events) { event ->
+            // Pobranie spolszczonej nazwy kategorii i koloru powiązanego z typem zdarzenia
             val catTitle = if (event.categories.isNotEmpty()) translateCategory(event.categories.first().title) else "Nieznana"
             val markerColor = getEventColor(catTitle)
 
@@ -390,8 +420,16 @@ fun EventsListScreen(events: List<Event>, onEventClick: (Event) -> Unit) {
     }
 }
 
-// ─── Event Details Bottom Sheet ───
+// ─── Event Details Bottom Sheet (Dolny Panel Szczegółów) ───
 
+/**
+ * Dolny arkusz (Bottom Sheet) wyświetlający szczegółowe dane o wybranym zdarzeniu naturalnym.
+ * Prezentuje:
+ * - Nagłówek z dopasowaną kolorystycznie ikoną i pełną nazwą katastrofy
+ * - Datę zarejestrowania zdarzenia przez NASA
+ * - Dokładne współrzędne geograficzne w układzie dziesiętnym
+ * - Źródło informacji: NASA Earth Observatory (EONET)
+ */
 @Composable
 fun EventDetailsSheet(event: Event) {
     val catTitle = if (event.categories.isNotEmpty()) translateCategory(event.categories.first().title) else "Nieznana Kategoria"
@@ -401,7 +439,7 @@ fun EventDetailsSheet(event: Event) {
         modifier = Modifier.fillMaxWidth().padding(24.dp).padding(bottom = 24.dp),
         horizontalAlignment = Alignment.Start
     ) {
-        // Nagłówek z kolorem
+        // Nagłówek panelu z dopasowaną ikoną w zaokrąglonym boksie
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
@@ -471,8 +509,14 @@ private fun DetailRow(icon: androidx.compose.ui.graphics.vector.ImageVector, lab
     }
 }
 
-// ─── Alarm Setup Dialog ───
+// ─── Alarm Setup Dialog (Dialog Konfiguracji Alarmu) ───
 
+/**
+ * Dialog konfiguracyjny (AlertDialog) do włączenia powiadomień w tle o nowych katastrofach.
+ * Pozwala użytkownikowi na:
+ * - Wybór opcji powiadomień z całego świata (globalne monitorowanie)
+ * - Wybór opcji lokalnej z określeniem własnego promienia w kilometrach wokół obecnej lokalizacji
+ */
 @Composable
 fun AlarmSetupDialog(onDismiss: () -> Unit, onConfirm: (Int) -> Unit) {
     var radiusText by remember { mutableStateOf("") }
@@ -564,8 +608,12 @@ fun AlarmSetupDialog(onDismiss: () -> Unit, onConfirm: (Int) -> Unit) {
     )
 }
 
-// ─── Helpers ───
+// ─── Helpers (Funkcje Pomocnicze Wyglądu Kategorii) ───
 
+/**
+ * Dobiera kolor przewodni (Color) dla danej spolszczonej kategorii zdarzenia.
+ * Pozwala to na szybką identyfikację typu zagrożenia na mapie oraz na liście.
+ */
 fun getEventColor(catTitle: String): Color = when {
     catTitle.contains("Pożary", ignoreCase = true) -> DangerRed
     catTitle.contains("Wulkany", ignoreCase = true) -> DangerRed

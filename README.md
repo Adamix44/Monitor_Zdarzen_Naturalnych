@@ -1,32 +1,42 @@
-# Monitor_Zdarzen_Naturalnych
+# Monitor Zdarzeń Naturalnych
 
-Celem projektu jest stworzenie aplikacji mobilnej na system operacyjny Android, służącej do monitorowania zdarzeń naturalnych na świecie w czasie rzeczywistym.
-Aplikacja gromadzi dane o anomaliach i żywiołach (m.in. pożary lasów, erupcje wulkanów), a następnie prezentuje je w intuicyjny sposób dla użytkownika, nanosząc je na interaktywną mapę satelitarną.
+**Monitor Zdarzeń Naturalnych** aplikacja mobilna na system operacyjny **Android**, służąca do monitorowania globalnych anomalii klimatycznych, żywiołów oraz zdarzeń naturalnych w czasie rzeczywistym.
 
-## Funkcje
+Projekt integruje dane satelitarne udostępniane przez **NASA** z interaktywnym silnikiem map **Google Maps SDK**, prezentując użytkownikowi platformę o stanie naszej planety.
 
-- **Mapa z pinezkami** — zdarzenia naturalne wyświetlane za pomocą Google Maps
-- **Filtrowanie po kategorii** — pożary, sztormy, wulkany, powodzie
-- **Dane w czasie rzeczywistym** — pobieranie aktualnych danych z NASA EONET API
-- **Szczegóły zdarzeń** — kliknięcie w pinezkę pokazuje nazwę, kategorię i datę
+---
 
-## Narzędzia
+## Główne Funkcje Aplikacji
 
-- **Kotlin** — język programowania
-- **Retrofit** — komunikacja z API
-- **Google Maps SDK** — wyświetlanie mapy
-- **Coroutines** — pobieranie danych
-- **Material Design** — interfejs użytkownika
+- **Wizualizacja** – Wykorzystuje Google Maps SDK do nanoszenia w czasie rzeczywistym zdarzeń naturalnych za pomocą pinezek.
+- **Filtr Czasowy** – Umożliwia użytkownikowi filtrowanie zdarzeń historycznych i aktywnych z ostatnich 7, 30, 90 lub 365 dni.
+- **Filtrowanie Kategorii** – Pozwala na filtrowanie zdarzeń według typów
+- **Dwuwarstwowy Widok Danych** – Elastyczne przełączanie interfejsu pomiędzy widokiem interaktywnej mapy satelitarnej, a chronologiczną, pionową listą zdarzeń w formie kart.
+- **Panel Informacyjny** – Wysuwana od dołu karta prezentująca kompletne szczegóły wybranego zdarzenia.
+- **Automatyczny Motyw Ciemny i Jasny** – Pełna integracja z ciemnym motywem systemowym Android.
 
-## API
+---
 
-Aplikacja korzysta z [NASA EONET API v3](https://eonet.gsfc.nasa.gov/docs/v3):
+## Architektura i Wzorce Projektowe
 
-- Dane: aktywne zdarzenia naturalne (pożary, sztormy, wulkany, powodzie itp.)
-  oraz Google Maps SDK for Android - do renderowania natywnej mapy świata i umieszczania współrzędnych geograficznych (pinezek).
+- **MVVM (Model-View-ViewModel)**
+- **Wzorzec Repository** – Centralny punkt zarządzania źródłami danych.
+- **Jetpack Compose**
+- **Bezpieczna wielowątkowość (Kotlin Coroutines)**
+
+---
+
+## Integracja z Zewnętrznymi Serwisami (API)
+
+1.  **[NASA EONET API v3](https://eonet.gsfc.nasa.gov/docs/v3) (Earth Observatory Natural Event Tracker)**
+    - Służy do ciągłego pobierania rzeczywistych danych na temat katastrof i anomalii naturalnych na globie.
+2.  **Google Maps Platform SDK for Android**
+    - Udostępnia interaktywne mapy satelitarne.
+    - Odpowiada za renderowanie pinezek.
+
+---
 
 ## Autorzy
 
-Adam Rybacki
-oraz
-Adam Michalak
+- **Adam Rybacki**
+- **Adam Michalak**

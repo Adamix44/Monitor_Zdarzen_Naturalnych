@@ -5,12 +5,27 @@ import com.example.monitorzdarzennaturalnych.data.model.EventResponse
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-// interfejs sieciowy do pobierania danych NASA
+/**
+ *Interfejs API definiujący punkty końcowe (endpoints) komunikacji sieciowej z NASA EONET (Earth Observatory Natural Event Tracker). 
+ *Retrofit generuje implementację tego interfejsu automatycznie w czasie wykonywania aplikacji.
+ */
 interface EonetApiService {
+    /**
+     * Pobiera listę zdarzeń naturalnych z NASA EONET API.
+     * Wywołanie wykonuje zapytanie typu HTTP GET na ścieżkę "events" (czyli "https://eonet.gsfc.nasa.gov/api/v3/events").
+     *Funkcja została oznaczona słowem kluczowym `suspend`, co oznacza, że jest to funkcja zawieszalna.
+     *Umożliwia to asynchroniczne pobieranie danych przy użyciu Kotlin Coroutines bez blokowania głównego wątku UI.
+
+     * @param status Status zdarzeń. Wartość "all" pozwala na pobranie zarówno zdarzeń aktywnych (open), jak i zakończonych (closed).
+     * @param days Zakres czasu w dniach wstecz.
+     * @param apiKey Klucz API NASA.
+     * @return Zwraca deserializowany obiekt odpowiedzi [EventResponse] zawierający listę zdarzeń.
+     */
     @GET("events")
     suspend fun getEvents(
-            @Query("status") status: String = "all", // Zmieniono z 'open' na 'all', aby ładować zdarzenia (także te zakończone) z całego świata!
-            @Query("days") days: Int = 20, // domyslnie 20 dni
+            @Query("status") status: String = "all",
+            @Query("days") days: Int = 20,
             @Query("api_key") apiKey: String = BuildConfig.NASA_API_KEY
     ): EventResponse
 }
+
