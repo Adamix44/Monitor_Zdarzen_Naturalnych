@@ -2,7 +2,7 @@
 
 Aplikacja mobilna na system operacyjny **Android** służąca do śledzenia, analizowania oraz wizualizowania w czasie rzeczywistym globalnych anomalii klimatycznych, żywiołów oraz zdarzeń naturalnych rejestrowanych przez satelity naukowe **NASA**.
 
-Projekt integruje rzeczywiste dane satelitarne z zaawansowanym silnikiem map **Google Maps SDK**, prezentując użytkownikowi interaktywny i czytelny panel informacyjny o stanie naszej planety. Całość została zaprojektowana w nowoczesnym stylu **Premium Dark Navy** przy użyciu biblioteki deklaratywnego interfejsu **Jetpack Compose**.
+Projekt integruje rzeczywiste dane satelitarne z zaawansowanym silnikiem map **Google Maps SDK**, prezentując użytkownikowi interaktywny i czytelny panel informacyjny o stanie naszej planety. Całość została zaprojektowana w nowoczesnym stylu **Dark Navy** przy użyciu biblioteki deklaratywnego interfejsu **Jetpack Compose**.
 
 ---
 
@@ -13,7 +13,7 @@ Aplikacja została wyposażona w szereg zaawansowanych funkcji ułatwiających a
 *   **Interaktywna Wizualizacja Mapy** – Nanoszenie katastrof w czasie rzeczywistym za pomocą dynamicznych pinezek na mapie terenu Google Maps. Kolory pinezek są dobierane automatycznie w zależności od rodzaju zagrożenia (np. czerwień dla wulkanów i pożarów, pomarańcz dla trzęsień ziemi i powodzi, błękit dla zjawisk lodowych).
 *   **Dwuwarstwowy Widok Interfejsu** – Możliwość płynnego przełączania się jednym kliknięciem pomiędzy widokiem interaktywnej mapy a chronologiczną, pionową listą zdarzeń w postaci eleganckich kart informacyjnych.
 *   **Zaawansowane Filtrowanie Danych**:
-    *   **Filtr Kategori** – Pozwala na zawężenie wyświetlanych zjawisk do konkretnego typu zagrożenia (np. pożary lasów, wulkany, gwałtowne burze, lodowce).
+    *   **Filtr kategorii** – Pozwala na zawężenie wyświetlanych zjawisk do konkretnego typu zagrożenia (np. pożary lasów, wulkany, gwałtowne burze, lodowce).
     *   **Filtr Czasowy** – Możliwość wyboru zakresu pobieranych danych z ostatnich 7, 30, 90 lub 365 dni wstecz.
 *   **Radar Zagrożeń w Tle (System Alarmów)** – Użytkownik może włączyć stałe monitorowanie w tle. Radar pozwala na wybór zasięgu globalnego (cała planeta) lub lokalnego (określony promień w kilometrach od pozycji użytkownika).
 *   **Powiadomienia Push w Czasie Rzeczywistym** – Gdy w tle (nawet przy zamkniętej aplikacji) zostanie wykryta nowa katastrofa naturalna w wybranym zasięgu, aplikacja wyśle natychmiastowe systemowe powiadomienie push z podsumowaniem zdarzenia.
@@ -21,7 +21,7 @@ Aplikacja została wyposażona w szereg zaawansowanych funkcji ułatwiających a
 
 ---
 
-## 🎨 Wygląd i Estetyka (Premium Dark Navy)
+## 🎨 Wygląd i Estetyka (Dark Navy)
 
 Aplikacja została zaprojektowana zgodnie z najnowszymi standardami projektowymi **Material Design 3**:
 *   Wykorzystuje autorską paletę barw **Dark Navy** – głębokie granaty połączone z neonowymi akcentami błękitu i turkusu.
@@ -56,17 +56,9 @@ Aplikacja została zbudowana zgodnie z oficjalnymi wytycznymi Google dla nowocze
 
 Aby pomyślnie otworzyć i uruchomić projekt w środowisku **Android Studio**:
 
-1.  **Wymagania minimalne**:
-    *   Android Studio w wersji obsługującej **Android Gradle Plugin (AGP) 9.1.1** lub nowszy.
-    *   Zainstalowane **Android SDK 34** (wersja kompilacji).
-    *   Telefon lub emulator z systemem **Android 8.0 (API 24)** lub nowszym.
-2.  **Klucze API**:
-    *   Projekt wykorzystuje mechanizm wtyczki `secrets-gradle-plugin`, co oznacza, że Twoje klucze API są w pełni bezpieczne i nie zostaną przypadkowo wrzucone na GitHuba.
-    *   Aby zdefiniować klucze, utwórz plik `local.properties` w katalogu głównym projektu i dodaj do niego następujące wpisy (podmieniając wartości na własne):
-        ```properties
-        MAPS_API_KEY=TUTAJ_WPISZ_TWÓJ_KLUCZ_GOOGLE_MAPS
-        NASA_API_KEY=DEMO_KEY
-        ```
+*   Android Studio w wersji obsługującej **Android Gradle Plugin (AGP) 9.1.1** lub nowszy.
+*   Zainstalowane **Android SDK 34** (wersja kompilacji).
+*   Telefon lub emulator z systemem **Android 8.0 (API 24)** lub nowszym.
 
 ---
 
