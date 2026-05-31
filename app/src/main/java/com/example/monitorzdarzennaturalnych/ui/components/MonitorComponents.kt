@@ -77,7 +77,7 @@ fun MonitorTopBar(
 
             // Nazwa aplikacji
             Text(
-                    text = "Monitor Zdarzeń",
+                    text = "Monitor Zdarzeń Naturalnych",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = TextPrimary,
@@ -488,7 +488,7 @@ fun EventDetailsSheet(event: Event) {
 
         if (event.geometries.isNotEmpty()) {
             val geo = event.geometries.first()
-            DetailRow(Icons.Outlined.CalendarMonth, "Data wykrycia", geo.date.take(16))
+            DetailRow(Icons.Outlined.CalendarMonth, "Data wykrycia", geo.date.take(16).replace("T", " "))
             Spacer(modifier = Modifier.height(10.dp))
 
             val parsedCoords = com.example.monitorzdarzennaturalnych.parseLatLng(geo.coordinates)
