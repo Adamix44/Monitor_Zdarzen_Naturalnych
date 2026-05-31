@@ -199,8 +199,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             // pobranie aktualnie wybranego zakresu dni
             val days = _selectedDays.value ?: 30
 
-            // pobranie danych z repozytorium
-            val result = repository.getEvents(days)
+            // pobranie danych z repozytorium (z mechanizmem ponawiania)
+            var result = repository.getEvents(days)
+
+            // Jeśli API NASA nie odpowiedziało (pusta lista), spróbuj jeszcze raz po krótkiej chwili
+            if (result.isEmpty()) {
+                kotlinx.coroutines.delay(1500)
+                result = repository.getEvents(days)
+            }
 
             // zapisanie pełnej listy
             _allEvents.value = result
