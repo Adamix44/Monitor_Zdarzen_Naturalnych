@@ -13,7 +13,7 @@ import android.content.SharedPreferences
 class AlarmPreferences(context: Context) {
 
     private val prefs: SharedPreferences =
-        context.getSharedPreferences("alarm_prefs", Context.MODE_PRIVATE)
+            context.getSharedPreferences("alarm_prefs", Context.MODE_PRIVATE)
 
     companion object {
         private const val KEY_ALARM_ENABLED = "alarm_enabled"
@@ -28,7 +28,7 @@ class AlarmPreferences(context: Context) {
         set(value) = prefs.edit().putBoolean(KEY_ALARM_ENABLED, value).apply()
 
     var radiusKm: Int
-        get() = prefs.getInt(KEY_RADIUS_KM, 0) // 0 = cała planeta
+        get() = prefs.getInt(KEY_RADIUS_KM, 0)
         set(value) = prefs.edit().putInt(KEY_RADIUS_KM, value).apply()
 
     var userLat: Double
@@ -45,9 +45,6 @@ class AlarmPreferences(context: Context) {
 
     /** Czyści cały alarm (wyłącza i resetuje ustawienia) */
     fun clearAlarm() {
-        prefs.edit()
-            .putBoolean(KEY_ALARM_ENABLED, false)
-            .putInt(KEY_RADIUS_KM, 0)
-            .apply()
+        prefs.edit().putBoolean(KEY_ALARM_ENABLED, false).putInt(KEY_RADIUS_KM, 0).apply()
     }
 }

@@ -39,23 +39,20 @@ class MainActivity : ComponentActivity() {
 
         // Żądanie uprawnienia do powiadomień (Android 13+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                != PackageManager.PERMISSION_GRANTED
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
+                            PackageManager.PERMISSION_GRANTED
             ) {
-                val launcher = registerForActivityResult(
-                    ActivityResultContracts.RequestPermission()
-                ) { /* wynik nie blokuje działania */ }
+                val launcher =
+                        registerForActivityResult(
+                                ActivityResultContracts.RequestPermission()
+                        ) { /* wynik nie blokuje działania */}
                 launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
 
         viewModel.loadEvents()
 
-        setContent {
-            MonitorTheme {
-                MonitorZdarzenApp(viewModel)
-            }
-        }
+        setContent { MonitorTheme { MonitorZdarzenApp(viewModel) } }
     }
 }
 
@@ -75,11 +72,7 @@ fun MonitorZdarzenApp(viewModel: MainViewModel) {
     val sheetState = rememberModalBottomSheetState()
     var showAlarmDialog by remember { mutableStateOf(false) }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(NavyDark)
-    ) {
+    Box(modifier = Modifier.fillMaxSize().background(NavyDark)) {
         // Warstwa 1: Mapa / Lista – pełny ekran
         if (isListView) {
             EventsListScreen(events, onEventClick = { viewModel.selectEvent(it) })
@@ -87,16 +80,15 @@ fun MonitorZdarzenApp(viewModel: MainViewModel) {
             EventsMapScreen(events, onEventClick = { viewModel.selectEvent(it) })
         }
 
-        // Warstwa 2: Overlay UI (TopBar + Filtry) na mapie
+        // Warstwa 2: UI (Pasek gorny + Filtry) na mapie
         Column(modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter)) {
             MonitorTopBar(
-                alarmEnabled = alarmEnabled,
-                isListView = isListView,
-                onAlarmClick = {
-                    if (alarmEnabled) viewModel.disableAlarm()
-                    else showAlarmDialog = true
-                },
-                onViewToggle = { viewModel.setListView(!isListView) }
+                    alarmEnabled = alarmEnabled,
+                    isListView = isListView,
+                    onAlarmClick = {
+                        if (alarmEnabled) viewModel.disableAlarm() else showAlarmDialog = true
+                    },
+                    onViewToggle = { viewModel.setListView(!isListView) }
             )
 
             if (alarmEnabled) {
@@ -104,113 +96,99 @@ fun MonitorZdarzenApp(viewModel: MainViewModel) {
             }
 
             FiltersSection(
-                categories = categories,
-                selectedCategory = selectedCategory,
-                onCategorySelected = { viewModel.setCategory(it) },
-                selectedDays = selectedDays,
-                onDaysSelected = { viewModel.setDays(it) }
+                    categories = categories,
+                    selectedCategory = selectedCategory,
+                    onCategorySelected = { viewModel.setCategory(it) },
+                    selectedDays = selectedDays,
+                    onDaysSelected = { viewModel.setDays(it) }
             )
         }
 
-        // Warstwa 3: Floating controls (prawy dół) – tylko widok mapy
+        // Warstwa 3:Floating controls (prawy dół) – tylko widok mapy
         if (!isListView) {
             Column(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 16.dp, bottom = 24.dp)
-                    .navigationBarsPadding(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier =
+                            Modifier.align(Alignment.BottomEnd)
+                                    .padding(end = 16.dp, bottom = 24.dp)
+                                    .navigationBarsPadding(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Event count badge
                 val count = events.size
                 if (count > 0) {
                     Surface(
-                        shape = RoundedCornerShape(20.dp),
-                        color = NavyElevated.copy(alpha = 0.9f),
-                        tonalElevation = 4.dp
+                            shape = RoundedCornerShape(20.dp),
+                            color = NavyElevated.copy(alpha = 0.9f),
+                            tonalElevation = 4.dp
                     ) {
                         Text(
-                            text = "$count zdarzeń",
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = TextSecondary
+                                text = "$count zdarzeń",
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = TextSecondary
                         )
                     }
                 }
             }
         }
 
-        // Loading indicator
+        // Wskaźnik ładowania
         if (isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(
-                    color = AccentBlue,
-                    strokeWidth = 3.dp,
-                    modifier = Modifier.size(40.dp)
+                        color = AccentBlue,
+                        strokeWidth = 3.dp,
+                        modifier = Modifier.size(40.dp)
                 )
             }
         } else if (events.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = NavySurfaceVariant.copy(alpha = 0.9f)
+                        shape = RoundedCornerShape(16.dp),
+                        color = NavySurfaceVariant.copy(alpha = 0.9f)
                 ) {
                     Text(
-                        text = "Brak zdarzeń dla tych filtrów",
-                        modifier = Modifier.padding(20.dp),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = TextSecondary
+                            text = "Brak zdarzeń dla tych filtrów",
+                            modifier = Modifier.padding(20.dp),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = TextSecondary
                     )
                 }
             }
         }
     }
 
-    // Bottom Sheet – szczegóły wybranego wydarzenia
+    // pasek dolny - szczegóły zdarzenia
     if (selectedEvent != null) {
         ModalBottomSheet(
-            onDismissRequest = { viewModel.selectEvent(null) },
-            sheetState = sheetState,
-            containerColor = NavySurface,
-            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-            dragHandle = {
-                Box(
-                    modifier = Modifier.padding(top = 10.dp, bottom = 6.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .width(40.dp)
-                            .height(4.dp)
-                            .clip(CircleShape)
-                            .background(TextTertiary)
-                    )
+                onDismissRequest = { viewModel.selectEvent(null) },
+                sheetState = sheetState,
+                containerColor = NavySurface,
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                dragHandle = {
+                    Box(modifier = Modifier.padding(top = 10.dp, bottom = 6.dp)) {
+                        Box(
+                                modifier =
+                                        Modifier.width(40.dp)
+                                                .height(4.dp)
+                                                .clip(CircleShape)
+                                                .background(TextTertiary)
+                        )
+                    }
                 }
-            }
-        ) {
-            EventDetailsSheet(event = selectedEvent!!)
-        }
+        ) { EventDetailsSheet(event = selectedEvent!!) }
     }
-
-    // Dialog alarmu
     if (showAlarmDialog) {
         AlarmSetupDialog(
-            onDismiss = { showAlarmDialog = false },
-            onConfirm = { radiusKm ->
-                viewModel.enableAlarm(radiusKm)
-                showAlarmDialog = false
-            }
+                onDismiss = { showAlarmDialog = false },
+                onConfirm = { radiusKm ->
+                    viewModel.enableAlarm(radiusKm)
+                    showAlarmDialog = false
+                }
         )
     }
 }
 
-// ─── Funkcja pomocnicza dekodująca złożone struktury JSON na współrzędne ───
-
+// Funkcja pomocnicza dekodująca złożone struktury JSON na współrzędne
 fun parseLatLng(coords: com.google.gson.JsonArray): LatLng? {
     try {
         if (coords.size() == 2 && coords[0].isJsonPrimitive) {
@@ -228,44 +206,45 @@ fun parseLatLng(coords: com.google.gson.JsonArray): LatLng? {
     return null
 }
 
-// ─── Ekran mapy z markerami ───
-
+// Ekran mapy z pinezkami
 @Composable
 fun EventsMapScreen(events: List<Event>, onEventClick: (Event) -> Unit) {
-    val initialPosition = remember(events) {
-        if (events.isNotEmpty() && events.first().geometries.isNotEmpty()) {
-            parseLatLng(events.first().geometries.first().coordinates) ?: LatLng(0.0, 0.0)
-        } else {
-            LatLng(0.0, 0.0)
-        }
-    }
+    val initialPosition =
+            remember(events) {
+                if (events.isNotEmpty() && events.first().geometries.isNotEmpty()) {
+                    parseLatLng(events.first().geometries.first().coordinates) ?: LatLng(0.0, 0.0)
+                } else {
+                    LatLng(0.0, 0.0)
+                }
+            }
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(initialPosition, 3f)
     }
 
-    // Automatyczne przesunięcie kamery
+    // ustawienie widoku mapy na pierwsze zdarzenie
     LaunchedEffect(events) {
         if (events.isNotEmpty() && events.first().geometries.isNotEmpty()) {
             val firstLocation = parseLatLng(events.first().geometries.first().coordinates)
             if (firstLocation != null) {
                 cameraPositionState.animate(
-                    update = CameraUpdateFactory.newLatLngZoom(firstLocation, 4f),
-                    durationMs = 1500
+                        update = CameraUpdateFactory.newLatLngZoom(firstLocation, 4f),
+                        durationMs = 1500
                 )
             }
         }
     }
 
     GoogleMap(
-        modifier = Modifier.fillMaxSize(),
-        cameraPositionState = cameraPositionState,
-        properties = MapProperties(mapType = MapType.TERRAIN),
-        uiSettings = MapUiSettings(
-            zoomControlsEnabled = false,
-            compassEnabled = true,
-            mapToolbarEnabled = false
-        )
+            modifier = Modifier.fillMaxSize(),
+            cameraPositionState = cameraPositionState,
+            properties = MapProperties(mapType = MapType.TERRAIN),
+            uiSettings =
+                    MapUiSettings(
+                            zoomControlsEnabled = false,
+                            compassEnabled = true,
+                            mapToolbarEnabled = false
+                    )
     ) {
         events.forEach { event ->
             if (event.geometries.isNotEmpty()) {
@@ -273,35 +252,50 @@ fun EventsMapScreen(events: List<Event>, onEventClick: (Event) -> Unit) {
                 val latLng = parseLatLng(geo.coordinates)
 
                 if (latLng != null) {
-                    val catTitle = if (event.categories.isNotEmpty())
-                        translateCategory(event.categories.first().title) else ""
+                    val catTitle =
+                            if (event.categories.isNotEmpty())
+                                    translateCategory(event.categories.first().title)
+                            else ""
 
-                    // Kolory markerów zależne od typu zagrożenia
-                    val hue = when {
-                        catTitle.contains("Pożary", ignoreCase = true) -> BitmapDescriptorFactory.HUE_RED
-                        catTitle.contains("Wulkany", ignoreCase = true) -> BitmapDescriptorFactory.HUE_RED
-                        catTitle.contains("Trzęsienia", ignoreCase = true) -> BitmapDescriptorFactory.HUE_ORANGE
-                        catTitle.contains("Powodzie", ignoreCase = true) -> BitmapDescriptorFactory.HUE_ORANGE
-                        catTitle.contains("burze", ignoreCase = true) -> BitmapDescriptorFactory.HUE_ORANGE
-                        catTitle.contains("Lód", ignoreCase = true) -> BitmapDescriptorFactory.HUE_AZURE
-                        catTitle.contains("Śnieżyce", ignoreCase = true) -> BitmapDescriptorFactory.HUE_AZURE
-                        catTitle.contains("Ekstremalne", ignoreCase = true) -> BitmapDescriptorFactory.HUE_CYAN
-                        catTitle.contains("Susze", ignoreCase = true) -> BitmapDescriptorFactory.HUE_GREEN
-                        catTitle.contains("Zadymienie", ignoreCase = true) -> BitmapDescriptorFactory.HUE_GREEN
-                        catTitle.contains("Zabarwienia", ignoreCase = true) -> BitmapDescriptorFactory.HUE_GREEN
-                        catTitle.contains("Osuwiska", ignoreCase = true) -> BitmapDescriptorFactory.HUE_ORANGE
-                        else -> BitmapDescriptorFactory.HUE_VIOLET
-                    }
+                    // Kolory pinezek zależne od typu zagrożenia
+                    val hue =
+                            when {
+                                catTitle.contains("Pożary", ignoreCase = true) ->
+                                        BitmapDescriptorFactory.HUE_RED
+                                catTitle.contains("Wulkany", ignoreCase = true) ->
+                                        BitmapDescriptorFactory.HUE_RED
+                                catTitle.contains("Trzęsienia", ignoreCase = true) ->
+                                        BitmapDescriptorFactory.HUE_ORANGE
+                                catTitle.contains("Powodzie", ignoreCase = true) ->
+                                        BitmapDescriptorFactory.HUE_ORANGE
+                                catTitle.contains("burze", ignoreCase = true) ->
+                                        BitmapDescriptorFactory.HUE_ORANGE
+                                catTitle.contains("Lód", ignoreCase = true) ->
+                                        BitmapDescriptorFactory.HUE_AZURE
+                                catTitle.contains("Śnieżyce", ignoreCase = true) ->
+                                        BitmapDescriptorFactory.HUE_AZURE
+                                catTitle.contains("Ekstremalne", ignoreCase = true) ->
+                                        BitmapDescriptorFactory.HUE_CYAN
+                                catTitle.contains("Susze", ignoreCase = true) ->
+                                        BitmapDescriptorFactory.HUE_GREEN
+                                catTitle.contains("Zadymienie", ignoreCase = true) ->
+                                        BitmapDescriptorFactory.HUE_GREEN
+                                catTitle.contains("Zabarwienia", ignoreCase = true) ->
+                                        BitmapDescriptorFactory.HUE_GREEN
+                                catTitle.contains("Osuwiska", ignoreCase = true) ->
+                                        BitmapDescriptorFactory.HUE_ORANGE
+                                else -> BitmapDescriptorFactory.HUE_VIOLET
+                            }
 
                     Marker(
-                        state = MarkerState(position = latLng),
-                        title = event.title,
-                        snippet = catTitle,
-                        icon = BitmapDescriptorFactory.defaultMarker(hue),
-                        onClick = {
-                            onEventClick(event)
-                            true
-                        }
+                            state = MarkerState(position = latLng),
+                            title = event.title,
+                            snippet = catTitle,
+                            icon = BitmapDescriptorFactory.defaultMarker(hue),
+                            onClick = {
+                                onEventClick(event)
+                                true
+                            }
                     )
                 }
             }

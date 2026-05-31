@@ -1,5 +1,4 @@
 //Plik settings.gradle.kts to glowne ustawienia srodowiska projektu.
-//Okreslamy w nim "skad" Android Studio ma sciagac wtyczki do budowania aplikacji.
 pluginManagement {
     repositories {
         google()//Repozytorium Google

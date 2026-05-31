@@ -58,7 +58,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
     implementation("androidx.activity:activity-ktx:1.8.2")
 
-    // JETPACK COMPOSE (Nowoczesny Interfejs)
+    //JETPACK COMPOSE
     val composeBom = platform("androidx.compose:compose-bom:2024.04.01")
     implementation(composeBom)
     implementation("androidx.compose.ui:ui")
@@ -67,13 +67,13 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     implementation("androidx.activity:activity-compose:1.9.0")
     
-    // Rozszerzone ikony Material Design
+    //Rozszerzone ikony Material Design
     implementation("androidx.compose.material:material-icons-extended")
     
-    // Odczytywanie LiveData (naszego powiadamiacza z viewmodelu) wewnatrz Compose
+    //Odczytywanie LiveData (naszego powiadamiacza z viewmodelu) wewnatrz Compose
     implementation("androidx.compose.runtime:runtime-livedata")
 
-    // Nowoczesne Mapy pod Compose
+    //Mapy pod Compose
     implementation("com.google.maps.android:maps-compose:4.3.3")
     implementation("com.google.android.gms:play-services-maps:18.2.0")
     //Retrofit oraz Gson - narzedzia do laczenia z systemem NASA EONET v3
