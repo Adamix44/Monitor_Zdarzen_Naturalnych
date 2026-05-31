@@ -43,7 +43,7 @@ class MainActivity : ComponentActivity() {
                 != PackageManager.PERMISSION_GRANTED
             ) {
                 val launcher = registerForActivityResult(
-                    ActivityResultContracts.RequestPermission()
+                    ActivityResultContracts.RequestPermission(),
                 ) { /* wynik nie blokuje działania */ }
                 launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
@@ -73,47 +73,71 @@ fun MonitorZdarzenApp(viewModel: MainViewModel) {
     val alarmRadiusKm by viewModel.alarmRadiusKm.observeAsState(initial = 0)
 
     val sheetState = rememberModalBottomSheetState()
-    var showAlarmDialog by remember { mutableStateOf(false) }
+    var showAlarmDialog by remember { mutableStateOf(value = false) }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(NavyDark)
+            .background(NavyDark),
     ) {
-        // Warstwa 1: Mapa / Lista – pełny ekran
         if (isListView) {
-            EventsListScreen(events, onEventClick = { viewModel.selectEvent(it) })
+            // Widok Listy: Układ sekwencyjny (jeden pod drugim)
+            Column(modifier = Modifier.fillMaxSize()) {
+                MonitorTopBar(
+                    alarmEnabled = alarmEnabled,
+                    isListView = isListView,
+                    onAlarmClick = {
+                        if (alarmEnabled) viewModel.disableAlarm()
+                        else showAlarmDialog = true
+                    },
+                ) {
+                    viewModel.setListView(isList = false)
+                }
+
+                if (alarmEnabled) {
+                    AlarmStatusBar(radiusKm = alarmRadiusKm, onDisable = { viewModel.disableAlarm() })
+                }
+
+                FiltersSection(
+                    categories = categories,
+                    selectedCategory = selectedCategory,
+                    onCategorySelected = { viewModel.setCategory(it) },
+                    selectedDays = selectedDays,
+                    onDaysSelected = { viewModel.setDays(it) }
+                )
+
+                EventsListScreen(events, onEventClick = { viewModel.selectEvent(it) })
+            }
         } else {
+            // Widok Mapy: Układ warstwowy (filtry nad mapą)
             EventsMapScreen(events, onEventClick = { viewModel.selectEvent(it) })
-        }
 
-        // Warstwa 2: Overlay UI (TopBar + Filtry) na mapie
-        Column(modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter)) {
-            MonitorTopBar(
-                alarmEnabled = alarmEnabled,
-                isListView = isListView,
-                onAlarmClick = {
-                    if (alarmEnabled) viewModel.disableAlarm()
-                    else showAlarmDialog = true
-                },
-                onViewToggle = { viewModel.setListView(!isListView) }
-            )
+            Column(modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter)) {
+                MonitorTopBar(
+                    alarmEnabled = alarmEnabled,
+                    isListView = isListView,
+                    onAlarmClick = {
+                        if (alarmEnabled) viewModel.disableAlarm()
+                        else showAlarmDialog = true
+                    },
+                ) {
+                    viewModel.setListView(isList = true)
+                }
 
-            if (alarmEnabled) {
-                AlarmStatusBar(radiusKm = alarmRadiusKm, onDisable = { viewModel.disableAlarm() })
+                if (alarmEnabled) {
+                    AlarmStatusBar(radiusKm = alarmRadiusKm, onDisable = { viewModel.disableAlarm() })
+                }
+
+                FiltersSection(
+                    categories = categories,
+                    selectedCategory = selectedCategory,
+                    onCategorySelected = { viewModel.setCategory(it) },
+                    selectedDays = selectedDays,
+                    onDaysSelected = { viewModel.setDays(it) }
+                )
             }
 
-            FiltersSection(
-                categories = categories,
-                selectedCategory = selectedCategory,
-                onCategorySelected = { viewModel.setCategory(it) },
-                selectedDays = selectedDays,
-                onDaysSelected = { viewModel.setDays(it) }
-            )
-        }
-
-        // Warstwa 3: Floating controls (prawy dół) – tylko widok mapy
-        if (!isListView) {
+            // Floating controls (prawy dół)
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
@@ -140,7 +164,7 @@ fun MonitorZdarzenApp(viewModel: MainViewModel) {
             }
         }
 
-        // Loading indicator
+        // Wspólny Loading indicator
         if (isLoading) {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -213,18 +237,18 @@ fun MonitorZdarzenApp(viewModel: MainViewModel) {
 
 fun parseLatLng(coords: com.google.gson.JsonArray): LatLng? {
     try {
-        if (coords.size() == 2 && coords[0].isJsonPrimitive) {
+        if ((coords.size() == 2) && (coords[0].isJsonPrimitive)) {
             return LatLng(coords[1].asDouble, coords[0].asDouble)
         } else {
             var current = coords
-            while (current.size() > 0 && current[0].isJsonArray) {
+            while ((current.size() > 0) && current[0].isJsonArray) {
                 current = current[0].asJsonArray
             }
-            if (current.size() >= 2 && current[0].isJsonPrimitive) {
+            if ((current.size() >= 2) && current[0].isJsonPrimitive) {
                 return LatLng(current[1].asDouble, current[0].asDouble)
             }
         }
-    } catch (e: Exception) {}
+    } catch (_: Exception) {}
     return null
 }
 
@@ -247,10 +271,9 @@ fun EventsMapScreen(events: List<Event>, onEventClick: (Event) -> Unit) {
     // Automatyczne przesunięcie kamery
     LaunchedEffect(events) {
         if (events.isNotEmpty() && events.first().geometries.isNotEmpty()) {
-            val firstLocation = parseLatLng(events.first().geometries.first().coordinates)
-            if (firstLocation != null) {
+            parseLatLng(events.first().geometries.first().coordinates)?.let { location ->
                 cameraPositionState.animate(
-                    update = CameraUpdateFactory.newLatLngZoom(firstLocation, 4f),
+                    update = CameraUpdateFactory.newLatLngZoom(location, 4f),
                     durationMs = 1500
                 )
             }
